@@ -5,7 +5,6 @@ import {
   LayoutDashboard, 
   CheckSquare, 
   Users, 
-  BarChart3, 
   Settings, 
   Briefcase,
   LogOut,
@@ -24,7 +23,6 @@ export function Sidebar({ className }: SidebarProps) {
     { icon: ListTodo, label: "All Tasks", href: "/all-tasks" },
     { icon: CheckSquare, label: "My Tasks", href: "/my-tasks" },
     { icon: Users, label: "Delegation", href: "/delegation" },
-    { icon: BarChart3, label: "Reports", href: "/reports" },
     { icon: Briefcase, label: "Projects", href: "/projects" },
     { icon: Settings, label: "Settings", href: "/settings" },
   ];
