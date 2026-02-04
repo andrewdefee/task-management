@@ -106,10 +106,16 @@ export function TaskTable({ title, tasks, className, compact = false, showMoreHr
                   </TableCell>
                   <TableCell className="text-right text-sm text-muted-foreground font-mono">
                     <div className="flex items-center justify-end gap-2">
-                      {task.dueDate < new Date() && task.status !== "Completed" && (
+                      {task.dueDate && task.status !== "Completed" && (() => {
+                        const now = new Date();
+                        const dueDate = new Date(task.dueDate);
+                        const diff = dueDate.getTime() - now.getTime();
+                        const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+                        return diff < threeDaysMs;
+                      })() && (
                         <AlertCircle className="h-3 w-3 text-rose-500" />
                       )}
-                      {format(task.dueDate, "MMM d")}
+                      {task.dueDate ? format(new Date(task.dueDate), "MMM d") : "No date"}
                     </div>
                   </TableCell>
                 </TableRow>

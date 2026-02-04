@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Task, TaskPriority, TaskStatus, TaskAssignee } from "@/lib/mockData";
+import { Task } from "@/lib/mockData";
 import { format } from "date-fns";
 import { AlertCircle, CheckCircle2, ArrowUpDown, ArrowRight } from "lucide-react";
 import { useState, useMemo } from "react";
@@ -26,8 +26,8 @@ interface DelegationTableProps {
   showDueSoonFilter?: boolean;
 }
 
-const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
-  const styles = {
+const PriorityBadge = ({ priority }: { priority: string }) => {
+  const styles: Record<string, string> = {
     Critical: "bg-rose-500/15 text-rose-500 border-rose-500/20 hover:bg-rose-500/25",
     High: "bg-amber-500/15 text-amber-500 border-amber-500/20 hover:bg-amber-500/25",
     Medium: "bg-blue-500/15 text-blue-500 border-blue-500/20 hover:bg-blue-500/25",
@@ -35,18 +35,19 @@ const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
   };
   
   return (
-    <Badge variant="outline" className={styles[priority]}>
+    <Badge variant="outline" className={styles[priority] || styles.Medium}>
       {priority}
     </Badge>
   );
 };
 
-const StatusBadge = ({ status }: { status: TaskStatus }) => {
+const StatusBadge = ({ status }: { status: string }) => {
   return (
     <span className="flex items-center gap-1.5 text-sm">
       {status === "Completed" && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
       {status === "In Progress" && <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />}
-      {status === "Review" && <div className="h-2 w-2 rounded-full bg-purple-500" />}
+      {status === "In Review" && <div className="h-2 w-2 rounded-full bg-purple-500" />}
+      {status === "Blocked" && <div className="h-2 w-2 rounded-full bg-orange-500" />}
       {status === "Todo" && <div className="h-2 w-2 rounded-full bg-slate-500" />}
       <span className="text-muted-foreground">{status}</span>
     </span>
@@ -112,9 +113,9 @@ export function DelegationTable({
 
       // Custom priority sorting value
       if (sortField === "priority") {
-        const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
-        valA = priorityOrder[a.priority];
-        valB = priorityOrder[b.priority];
+        const priorityOrder: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+        valA = priorityOrder[a.priority] ?? 99;
+        valB = priorityOrder[b.priority] ?? 99;
       }
 
       if (valA < valB) return sortDirection === "asc" ? -1 : 1;
@@ -251,10 +252,16 @@ export function DelegationTable({
                   </TableCell>
                   <TableCell className="text-right text-sm text-muted-foreground font-mono">
                     <div className="flex items-center justify-end gap-2">
-                      {task.dueDate < new Date() && task.status !== "Completed" && (
+                      {task.dueDate && task.status !== "Completed" && (() => {
+                        const now = new Date();
+                        const dueDate = new Date(task.dueDate);
+                        const diff = dueDate.getTime() - now.getTime();
+                        const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+                        return diff < threeDaysMs;
+                      })() && (
                         <AlertCircle className="h-3 w-3 text-rose-500" />
                       )}
-                      {format(task.dueDate, "MMM d")}
+                      {task.dueDate ? format(new Date(task.dueDate), "MMM d") : "No date"}
                     </div>
                   </TableCell>
                 </TableRow>
