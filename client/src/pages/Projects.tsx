@@ -2,26 +2,81 @@ import { Layout } from "@/components/layout/Layout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ProjectHealthChart } from "@/components/reports/ProjectHealthChart";
 import { TaskTable } from "@/components/dashboard/TaskTable";
-import { MOCK_TASKS } from "@/lib/mockData";
+import { useTasks, useTeamMembers, useProjects, useStatuses, usePriorities } from "@/lib/queries";
+import { enrichTasks } from "@/lib/taskUtils";
 import { CheckCircle2, AlertCircle, Clock, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+function getProjectHealth(tasks: ReturnType<typeof enrichTasks>) {
+  if (tasks.length === 0) return { status: "On Track", variant: "outline" as const };
+  
+  const now = new Date();
+  const activeTasks = tasks.filter(t => t.status !== "Completed");
+  
+  const overdueTasks = activeTasks.filter(t => {
+    if (!t.dueDate) return false;
+    return new Date(t.dueDate) < now;
+  });
+  
+  const criticalTasks = activeTasks.filter(t => t.priority === "Critical");
+  
+  const dueSoonTasks = activeTasks.filter(t => {
+    if (!t.dueDate) return false;
+    const diff = new Date(t.dueDate).getTime() - now.getTime();
+    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
+  });
+
+  if (overdueTasks.length > 0 || criticalTasks.length > 0) {
+    return { status: "At Risk", variant: "destructive" as const };
+  }
+  
+  if (dueSoonTasks.length > 0) {
+    return { status: "Needs Attention", variant: "secondary" as const };
+  }
+  
+  return { status: "On Track", variant: "outline" as const };
+}
+
 export default function Projects() {
-  const tasks = MOCK_TASKS;
+  const { data: tasksData, isLoading: tasksLoading } = useTasks();
+  const { data: teamMembers, isLoading: teamMembersLoading } = useTeamMembers();
+  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: statuses, isLoading: statusesLoading } = useStatuses();
+  const { data: priorities, isLoading: prioritiesLoading } = usePriorities();
+
+  const isLoading = tasksLoading || teamMembersLoading || projectsLoading || statusesLoading || prioritiesLoading;
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-muted-foreground">Loading projects...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!tasksData || !teamMembers || !projects || !statuses || !priorities) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-muted-foreground">Failed to load data</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const tasks = enrichTasks(tasksData, teamMembers, projects, statuses, priorities);
   const activeTasks = tasks.filter(t => t.status !== "Completed");
   const criticalTasks = activeTasks.filter(t => t.priority === "Critical");
   const dueSoon = activeTasks.filter(t => {
-    const diff = t.dueDate.getTime() - new Date().getTime();
-    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000; // 3 days
+    const diff = new Date(t.dueDate).getTime() - new Date().getTime();
+    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
   });
-  
-  // Get unique projects
-  const uniqueProjects = Array.from(new Set(tasks.map(t => t.project)));
 
-  // Group tasks by project
   const projectTasks: Record<string, typeof tasks> = {};
-  uniqueProjects.forEach(p => {
-    projectTasks[p] = tasks.filter(t => t.project === p && t.status !== "Completed");
+  projects.forEach(p => {
+    projectTasks[p.name] = tasks.filter(t => t.project === p.name && t.status !== "Completed");
   });
 
   return (
@@ -53,7 +108,7 @@ export default function Projects() {
           />
           <StatCard 
             title="Active Projects" 
-            value={uniqueProjects.length} 
+            value={projects.length} 
             icon={Target} 
             variant="success"
             description="Currently in flight"
@@ -69,23 +124,45 @@ export default function Projects() {
         <div className="space-y-6">
           <h2 className="text-xl font-display font-semibold text-white">Active Initiatives</h2>
           <div className="grid gap-6">
-            {uniqueProjects.map((project) => (
-              <div key={project} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                     <div className="h-8 w-8 rounded bg-primary/20 flex items-center justify-center text-primary">
-                       <BriefcaseIcon className="h-4 w-4" />
-                     </div>
-                     <div>
-                      <h3 className="font-medium text-lg leading-none">{project}</h3>
-                      <p className="text-xs text-muted-foreground mt-1">{projectTasks[project]?.length || 0} active tasks</p>
-                     </div>
+            {projects.map((project) => {
+              const projectTaskList = projectTasks[project.name] || [];
+              const health = getProjectHealth(projectTaskList);
+              
+              return (
+                <div key={project.id} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                       <div className="h-8 w-8 rounded bg-primary/20 flex items-center justify-center text-primary">
+                         <BriefcaseIcon className="h-4 w-4" />
+                       </div>
+                       <div>
+                        <h3 className="font-medium text-lg leading-none">{project.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">{projectTaskList.length} active tasks</p>
+                       </div>
+                    </div>
+                    <Badge 
+                      variant={health.variant}
+                      className={
+                        health.status === "At Risk" 
+                          ? "bg-rose-500/15 text-rose-500 border-rose-500/20" 
+                          : health.status === "Needs Attention"
+                          ? "bg-amber-500/15 text-amber-500 border-amber-500/20"
+                          : ""
+                      }
+                    >
+                      {health.status}
+                    </Badge>
                   </div>
-                  <Badge variant="outline">On Track</Badge>
+                  {projectTaskList.length > 0 ? (
+                    <TaskTable title={`${project.name} Tasks`} tasks={projectTaskList} compact />
+                  ) : (
+                    <div className="text-sm text-muted-foreground py-4 text-center border border-white/10 rounded-lg">
+                      No active tasks for this project
+                    </div>
+                  )}
                 </div>
-                <TaskTable title={`${project} Tasks`} tasks={projectTasks[project] || []} compact />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
