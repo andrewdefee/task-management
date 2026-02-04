@@ -1,15 +1,45 @@
 import { Layout } from "@/components/layout/Layout";
 import { DelegationTable } from "@/components/dashboard/DelegationTable";
-import { MOCK_TASKS } from "@/lib/mockData";
+import { useTasks, useTeamMembers, useProjects, useStatuses, usePriorities } from "@/lib/queries";
+import { enrichTasks } from "@/lib/taskUtils";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
 
 export default function AllTasks() {
-  const tasks = MOCK_TASKS.filter(t => t.status !== "Completed");
+  const { data: tasksData, isLoading: tasksLoading } = useTasks();
+  const { data: teamMembers, isLoading: teamMembersLoading } = useTeamMembers();
+  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: statuses, isLoading: statusesLoading } = useStatuses();
+  const { data: priorities, isLoading: prioritiesLoading } = usePriorities();
+
+  const isLoading = tasksLoading || teamMembersLoading || projectsLoading || statusesLoading || prioritiesLoading;
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-muted-foreground">Loading tasks...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!tasksData || !teamMembers || !projects || !statuses || !priorities) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-muted-foreground">Failed to load data</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const allTasks = enrichTasks(tasksData, teamMembers, projects, statuses, priorities);
+  const tasks = allTasks.filter(t => t.status !== "Completed");
   const criticalTasks = tasks.filter(t => t.priority === "Critical");
   const dueSoon = tasks.filter(t => {
-    const diff = t.dueDate.getTime() - new Date().getTime();
-    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000; // 3 days
+    const diff = new Date(t.dueDate).getTime() - new Date().getTime();
+    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
   });
 
   return (

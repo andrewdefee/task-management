@@ -1,20 +1,50 @@
 import { Layout } from "@/components/layout/Layout";
 import { TaskTable } from "@/components/dashboard/TaskTable";
-import { MOCK_TASKS, TaskAssignee } from "@/lib/mockData";
+import { useTasks, useTeamMembers, useProjects, useStatuses, usePriorities } from "@/lib/queries";
+import { enrichTasks } from "@/lib/taskUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Users, AlertCircle, Clock } from "lucide-react";
 
 export default function Delegation() {
-  const delegatedTasks = MOCK_TASKS.filter(t => t.assignee !== "Me" && t.status !== "Completed");
+  const { data: tasksData, isLoading: tasksLoading } = useTasks();
+  const { data: teamMembers, isLoading: teamMembersLoading } = useTeamMembers();
+  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: statuses, isLoading: statusesLoading } = useStatuses();
+  const { data: priorities, isLoading: prioritiesLoading } = usePriorities();
+
+  const isLoading = tasksLoading || teamMembersLoading || projectsLoading || statusesLoading || prioritiesLoading;
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-muted-foreground">Loading tasks...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!tasksData || !teamMembers || !projects || !statuses || !priorities) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-muted-foreground">Failed to load data</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const allTasks = enrichTasks(tasksData, teamMembers, projects, statuses, priorities);
+  const currentUser = teamMembers[0];
+  const delegatedTasks = allTasks.filter(t => t.assigneeId !== currentUser.id && t.status !== "Completed");
   const criticalTasks = delegatedTasks.filter(t => t.priority === "Critical");
   const dueSoon = delegatedTasks.filter(t => {
-    const diff = t.dueDate.getTime() - new Date().getTime();
-    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000; // 3 days
+    const diff = new Date(t.dueDate).getTime() - new Date().getTime();
+    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
   });
   
-  // Group by assignee
   const groupedTasks: Record<string, typeof delegatedTasks> = {};
   delegatedTasks.forEach(task => {
     if (!groupedTasks[task.assignee]) {

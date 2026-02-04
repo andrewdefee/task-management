@@ -4,15 +4,47 @@ import { TaskTable } from "@/components/dashboard/TaskTable";
 import { DelegationTable } from "@/components/dashboard/DelegationTable";
 import { AgingReport } from "@/components/dashboard/AgingReport";
 import { CompletionReport } from "@/components/dashboard/CompletionReport";
-import { MOCK_TASKS } from "@/lib/mockData";
+import { useTasks, useTeamMembers, useProjects, useStatuses, usePriorities } from "@/lib/queries";
+import { enrichTasks } from "@/lib/taskUtils";
 import { AlertCircle, CheckCircle2, Clock, Users } from "lucide-react";
 
 export default function Dashboard() {
-  const tasks = MOCK_TASKS;
+  const { data: tasksData, isLoading: tasksLoading } = useTasks();
+  const { data: teamMembers, isLoading: teamMembersLoading } = useTeamMembers();
+  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: statuses, isLoading: statusesLoading } = useStatuses();
+  const { data: priorities, isLoading: prioritiesLoading } = usePriorities();
+
+  const isLoading = tasksLoading || teamMembersLoading || projectsLoading || statusesLoading || prioritiesLoading;
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-muted-foreground">Loading dashboard...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!tasksData || !teamMembers || !projects || !statuses || !priorities) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-muted-foreground">Failed to load data</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const tasks = enrichTasks(tasksData, teamMembers, projects, statuses, priorities);
+  
+  // For demo purposes, we'll assume the first team member is "Me"
+  const currentUser = teamMembers[0];
   
   // Derived State
-  const myTasks = tasks.filter(t => t.assignee === "Me" && t.status !== "Completed");
-  const delegatedTasks = tasks.filter(t => t.assignee !== "Me" && t.status !== "Completed");
+  const myTasks = tasks.filter(t => t.assigneeId === currentUser.id && t.status !== "Completed");
+  const delegatedTasks = tasks.filter(t => t.assigneeId !== currentUser.id && t.status !== "Completed");
   const criticalTasks = tasks.filter(t => t.priority === "Critical" && t.status !== "Completed");
   const completedTasks = tasks.filter(t => t.status === "Completed");
 
@@ -36,7 +68,7 @@ export default function Dashboard() {
             title="My Open Tasks" 
             value={myTasks.length} 
             icon={CheckCircle2} 
-            description="3 due today"
+            description={`${myTasks.filter(t => t.dueDate && new Date(t.dueDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000)).length} due soon`}
           />
           <StatCard 
             title="Critical Items" 
@@ -50,7 +82,7 @@ export default function Dashboard() {
             value={delegatedTasks.length} 
             icon={Users} 
             variant="info"
-            description="Active across 4 team members"
+            description={`Active across ${new Set(delegatedTasks.map(t => t.assigneeId)).size} team members`}
           />
           <StatCard 
             title="Completed (Q1)" 

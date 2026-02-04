@@ -1,21 +1,22 @@
 import { addDays, subDays } from "date-fns";
 
-export type TaskStatus = "Todo" | "In Progress" | "Review" | "Completed";
+export type TaskStatus = "Todo" | "In Progress" | "In Review" | "Blocked" | "Completed";
 export type TaskPriority = "Critical" | "High" | "Medium" | "Low";
-export type TaskAssignee = "Me" | "John Doe" | "Sarah Smith" | "Mike Ross" | "Rachel Green";
 
 export interface Task {
   id: string;
   title: string;
   project: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  assignee: TaskAssignee;
+  status: string;
+  priority: string;
+  assignee: string;
   dueDate: Date;
   createdAt: Date;
   completedAt?: Date;
   description: string;
 }
+
+type TaskAssignee = "Me" | "John Doe" | "Sarah Smith" | "Mike Ross" | "Rachel Green";
 
 const generateTasks = (): Task[] => {
   const tasks: Task[] = [];
