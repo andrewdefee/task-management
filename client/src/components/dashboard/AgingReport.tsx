@@ -15,24 +15,24 @@ export function AgingReport({ tasks }: AgingReportProps) {
 
   // Buckets
   const buckets = {
-    "0-7 days": 0,
-    "8-14 days": 0,
-    "15-30 days": 0,
-    "31-60 days": 0,
-    "61-90 days": 0,
-    "91-120 days": 0,
-    "120+ days": 0,
+    "7": 0,
+    "14": 0,
+    "30": 0,
+    "60": 0,
+    "90": 0,
+    "120": 0,
+    "120+": 0,
   };
 
   openTasks.forEach(task => {
     const age = differenceInDays(now, task.createdAt);
-    if (age <= 7) buckets["0-7 days"]++;
-    else if (age <= 14) buckets["8-14 days"]++;
-    else if (age <= 30) buckets["15-30 days"]++;
-    else if (age <= 60) buckets["31-60 days"]++;
-    else if (age <= 90) buckets["61-90 days"]++;
-    else if (age <= 120) buckets["91-120 days"]++;
-    else buckets["120+ days"]++;
+    if (age <= 7) buckets["7"]++;
+    else if (age <= 14) buckets["14"]++;
+    else if (age <= 30) buckets["30"]++;
+    else if (age <= 60) buckets["60"]++;
+    else if (age <= 90) buckets["90"]++;
+    else if (age <= 120) buckets["120"]++;
+    else buckets["120+"]++;
   });
 
   const data = Object.entries(buckets).map(([range, count]) => ({
@@ -44,7 +44,7 @@ export function AgingReport({ tasks }: AgingReportProps) {
     if (active && payload && payload.length) {
       return (
         <div className="bg-popover border border-border p-3 rounded shadow-lg text-sm">
-          <p className="font-semibold mb-1 text-foreground">{label}</p>
+          <p className="font-semibold mb-1 text-foreground">{label} Days</p>
           <p className="text-muted-foreground">
             Tasks: <span className="text-primary font-bold">{payload[0].value}</span>
           </p>
@@ -57,9 +57,12 @@ export function AgingReport({ tasks }: AgingReportProps) {
   return (
     <Card className="col-span-1 min-h-[300px]">
       <CardHeader>
-        <CardTitle className="text-lg font-medium font-display text-muted-foreground uppercase tracking-wider">
-          Task Aging Analysis
-        </CardTitle>
+        <div className="space-y-1">
+          <CardTitle className="text-lg font-medium font-display text-muted-foreground uppercase tracking-wider">
+            Task Aging Analysis
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Days Outstanding</p>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-[250px] w-full">

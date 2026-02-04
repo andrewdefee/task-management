@@ -1,6 +1,7 @@
 import { Layout } from "@/components/layout/Layout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { TaskTable } from "@/components/dashboard/TaskTable";
+import { DelegationTable } from "@/components/dashboard/DelegationTable";
 import { AgingReport } from "@/components/dashboard/AgingReport";
 import { CompletionReport } from "@/components/dashboard/CompletionReport";
 import { MOCK_TASKS } from "@/lib/mockData";
@@ -36,16 +37,12 @@ export default function Dashboard() {
             value={myTasks.length} 
             icon={CheckCircle2} 
             description="3 due today"
-            trend="neutral"
-            trendValue="0%"
           />
           <StatCard 
             title="Critical Items" 
             value={criticalTasks.length} 
             icon={AlertCircle} 
             variant="warning"
-            trend="up"
-            trendValue="12%"
             description="Requires immediate attention"
           />
           <StatCard 
@@ -60,8 +57,6 @@ export default function Dashboard() {
             value={completedTasks.length} 
             icon={Clock} 
             variant="success"
-            trend="up"
-            trendValue="8%"
             description="Ahead of schedule"
           />
         </div>
@@ -84,7 +79,7 @@ export default function Dashboard() {
 
          {/* Delegation Row */}
          <div>
-          <TaskTable title="Team Delegation & Accountability" tasks={delegatedTasks} className="w-full" />
+          <DelegationTable tasks={delegatedTasks} className="w-full" />
          </div>
       </div>
     </Layout>

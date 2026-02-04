@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { Task } from "@/lib/mockData";
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, isWithinInterval, format } from "date-fns";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -12,25 +11,21 @@ interface CompletionReportProps {
 export function CompletionReport({ tasks }: CompletionReportProps) {
   const [period, setPeriod] = useState("Month");
   
-  const completedTasks = tasks.filter(t => t.status === "Completed" && t.completedAt);
-
-  // Group by timeframe logic needed here. 
-  // For prototype simplicity, I'll generate mock trend data based on the counts to ensure the chart looks good.
-  // In a real app, I'd aggregate the dates properly.
+  // In a real app, we would aggregate `completedTasks` by date here.
+  // For the mockup, we generate trend data that represents "Completed Tasks" volume.
   
   const generateTrendData = (period: string) => {
     const data = [];
     let points = 7;
-    let labelFormat = "EEE";
     
-    if (period === "Month") { points = 30; labelFormat = "d"; }
-    if (period === "Quarter") { points = 12; labelFormat = "wo"; }
-    if (period === "Year") { points = 12; labelFormat = "MMM"; }
+    if (period === "Month") { points = 30; }
+    if (period === "Quarter") { points = 12; }
+    if (period === "Year") { points = 12; }
 
     for (let i = 0; i < points; i++) {
       data.push({
         name: i.toString(), // Simplified label
-        value: Math.floor(Math.random() * 10) + 2 // Mock volume
+        value: Math.floor(Math.random() * 8) // Mock completed volume
       });
     }
     return data;
@@ -41,9 +36,12 @@ export function CompletionReport({ tasks }: CompletionReportProps) {
   return (
     <Card className="col-span-1">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium font-display text-muted-foreground uppercase tracking-wider">
-          Throughput Velocity
-        </CardTitle>
+        <div className="space-y-1">
+          <CardTitle className="text-lg font-medium font-display text-muted-foreground uppercase tracking-wider">
+            Completion Velocity
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Tasks completed over time</p>
+        </div>
         <Tabs defaultValue="Month" onValueChange={setPeriod} className="w-auto">
           <TabsList className="h-8 bg-background border border-white/5">
             <TabsTrigger value="Week" className="text-xs">Week</TabsTrigger>
@@ -68,6 +66,8 @@ export function CompletionReport({ tasks }: CompletionReportProps) {
               <Tooltip 
                 contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--foreground))' }}
                 itemStyle={{ color: 'hsl(var(--primary))' }}
+                labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
+                formatter={(value: number) => [value, "Completed Tasks"]}
               />
               <Area 
                 type="monotone" 

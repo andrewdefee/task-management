@@ -7,10 +7,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Task, TaskPriority, TaskStatus } from "@/lib/mockData";
 import { format } from "date-fns";
-import { AlertCircle, Clock, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Clock, CheckCircle2, ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 interface TaskTableProps {
   title: string;
@@ -48,13 +50,17 @@ const StatusBadge = ({ status }: { status: TaskStatus }) => {
 };
 
 export function TaskTable({ title, tasks, className, compact = false }: TaskTableProps) {
+  const [showAll, setShowAll] = useState(false);
+  
+  // Limit to 5 unless "show more" is clicked
+  const displayedTasks = showAll ? tasks : tasks.slice(0, 5);
+  const hasMore = tasks.length > 5;
+
   return (
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-medium font-display">{title}</CardTitle>
-        <Badge variant="secondary" className="font-mono text-xs">
-          {tasks.length}
-        </Badge>
+        {/* Count badge removed as requested */}
       </CardHeader>
       <CardContent className="p-0">
         <Table>
@@ -68,14 +74,14 @@ export function TaskTable({ title, tasks, className, compact = false }: TaskTabl
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tasks.length === 0 ? (
+            {displayedTasks.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   No tasks found.
                 </TableCell>
               </TableRow>
             ) : (
-              tasks.map((task) => (
+              displayedTasks.map((task) => (
                 <TableRow key={task.id} className="group hover:bg-white/5 border-white/5 cursor-pointer transition-colors">
                   <TableCell className="font-medium">
                     <div className="flex flex-col">
@@ -112,6 +118,19 @@ export function TaskTable({ title, tasks, className, compact = false }: TaskTabl
             )}
           </TableBody>
         </Table>
+        
+        {hasMore && !showAll && (
+          <div className="p-2 border-t border-white/5">
+            <Button 
+              variant="ghost" 
+              className="w-full text-xs text-muted-foreground hover:text-primary"
+              onClick={() => setShowAll(true)}
+            >
+              Show {tasks.length - 5} more...
+              <ChevronDown className="ml-2 h-3 w-3" />
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
