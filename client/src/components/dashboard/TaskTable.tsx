@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Task, TaskPriority, TaskStatus } from "@/lib/mockData";
 import { format } from "date-fns";
-import { AlertCircle, Clock, CheckCircle2, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, Clock, CheckCircle2, ChevronDown, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 interface TaskTableProps {
   title: string;
@@ -20,6 +20,7 @@ interface TaskTableProps {
   onTaskClick?: (taskId: string) => void;
   className?: string;
   compact?: boolean;
+  showMoreHref?: string;
 }
 
 const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
@@ -49,18 +50,15 @@ const StatusBadge = ({ status }: { status: TaskStatus }) => {
   );
 };
 
-export function TaskTable({ title, tasks, className, compact = false }: TaskTableProps) {
-  const [showAll, setShowAll] = useState(false);
-  
-  // Limit to 5 unless "show more" is clicked
-  const displayedTasks = showAll ? tasks : tasks.slice(0, 5);
-  const hasMore = tasks.length > 5;
+export function TaskTable({ title, tasks, className, compact = false, showMoreHref }: TaskTableProps) {
+  // Always limit to 5 if showMoreHref is present (dashboard view)
+  const displayedTasks = showMoreHref ? tasks.slice(0, 5) : tasks;
+  const hasMore = showMoreHref && tasks.length > 5;
 
   return (
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-medium font-display">{title}</CardTitle>
-        {/* Count badge removed as requested */}
       </CardHeader>
       <CardContent className="p-0">
         <Table>
@@ -119,16 +117,17 @@ export function TaskTable({ title, tasks, className, compact = false }: TaskTabl
           </TableBody>
         </Table>
         
-        {hasMore && !showAll && (
+        {hasMore && (
           <div className="p-2 border-t border-white/5">
-            <Button 
-              variant="ghost" 
-              className="w-full text-xs text-muted-foreground hover:text-primary"
-              onClick={() => setShowAll(true)}
-            >
-              Show {tasks.length - 5} more...
-              <ChevronDown className="ml-2 h-3 w-3" />
-            </Button>
+            <Link href={showMoreHref}>
+              <Button 
+                variant="ghost" 
+                className="w-full text-xs text-muted-foreground hover:text-primary"
+              >
+                Show More
+                <ArrowRight className="ml-2 h-3 w-3" />
+              </Button>
+            </Link>
           </div>
         )}
       </CardContent>

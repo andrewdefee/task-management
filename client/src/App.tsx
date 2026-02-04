@@ -5,14 +5,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
+import AllTasks from "@/pages/AllTasks";
+import MyTasks from "@/pages/MyTasks";
+import Delegation from "@/pages/Delegation";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      {/* Fallback to Dashboard for other routes for prototype since they share components */}
-      <Route path="/my-tasks" component={Dashboard} />
-      <Route path="/delegation" component={Dashboard} />
+      <Route path="/all-tasks" component={AllTasks} />
+      <Route path="/my-tasks" component={MyTasks} />
+      <Route path="/delegation" component={Delegation} />
+      
+      {/* Fallbacks */}
       <Route path="/reports" component={Dashboard} />
       <Route path="/projects" component={Dashboard} />
       

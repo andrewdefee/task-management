@@ -12,12 +12,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Task, TaskPriority, TaskStatus, TaskAssignee } from "@/lib/mockData";
 import { format } from "date-fns";
-import { AlertCircle, CheckCircle2, ArrowUpDown } from "lucide-react";
+import { AlertCircle, CheckCircle2, ArrowUpDown, ArrowRight } from "lucide-react";
 import { useState, useMemo } from "react";
+import { Link } from "wouter";
 
 interface DelegationTableProps {
   tasks: Task[];
   className?: string;
+  limit?: number;
+  showMoreHref?: string;
 }
 
 const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
@@ -50,7 +53,7 @@ const StatusBadge = ({ status }: { status: TaskStatus }) => {
 type SortField = "status" | "assignee" | "priority" | "dueDate";
 type SortDirection = "asc" | "desc";
 
-export function DelegationTable({ tasks, className }: DelegationTableProps) {
+export function DelegationTable({ tasks, className, limit, showMoreHref }: DelegationTableProps) {
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -104,6 +107,10 @@ export function DelegationTable({ tasks, className }: DelegationTableProps) {
 
     return result;
   }, [tasks, statusFilter, priorityFilter, assigneeFilter, sortField, sortDirection]);
+
+  // Apply limit if provided
+  const displayedTasks = limit ? filteredAndSortedTasks.slice(0, limit) : filteredAndSortedTasks;
+  const hasMore = limit && filteredAndSortedTasks.length > limit;
 
   return (
     <Card className={className}>
@@ -182,14 +189,14 @@ export function DelegationTable({ tasks, className }: DelegationTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAndSortedTasks.length === 0 ? (
+            {displayedTasks.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   No tasks match current filters.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAndSortedTasks.map((task) => (
+              displayedTasks.map((task) => (
                 <TableRow key={task.id} className="group hover:bg-white/5 border-white/5 cursor-pointer transition-colors">
                   <TableCell className="font-medium">
                     <div className="flex flex-col">
@@ -224,6 +231,20 @@ export function DelegationTable({ tasks, className }: DelegationTableProps) {
             )}
           </TableBody>
         </Table>
+
+        {hasMore && showMoreHref && (
+          <div className="p-2 border-t border-white/5">
+            <Link href={showMoreHref}>
+              <Button 
+                variant="ghost" 
+                className="w-full text-xs text-muted-foreground hover:text-primary"
+              >
+                Show More
+                <ArrowRight className="ml-2 h-3 w-3" />
+              </Button>
+            </Link>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

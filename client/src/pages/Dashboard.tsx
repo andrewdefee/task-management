@@ -73,13 +73,28 @@ export default function Dashboard() {
 
         {/* Content Row */}
         <div className="grid gap-4 md:grid-cols-2">
-          <TaskTable title="Priority Attention" tasks={criticalTasks} className="h-full" />
-          <TaskTable title="Assigned to Me" tasks={myTasks} className="h-full" />
+          <TaskTable 
+            title="Priority Attention" 
+            tasks={criticalTasks} 
+            className="h-full" 
+            showMoreHref="/all-tasks"
+          />
+          <TaskTable 
+            title="Assigned to Me" 
+            tasks={myTasks} 
+            className="h-full" 
+            showMoreHref="/my-tasks"
+          />
         </div>
 
          {/* Delegation Row */}
          <div>
-          <DelegationTable tasks={delegatedTasks} className="w-full" />
+          <DelegationTable 
+            tasks={delegatedTasks} 
+            className="w-full" 
+            limit={15}
+            showMoreHref="/delegation"
+          />
          </div>
       </div>
     </Layout>

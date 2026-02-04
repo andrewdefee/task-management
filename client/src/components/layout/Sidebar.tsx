@@ -8,7 +8,8 @@ import {
   BarChart3, 
   Settings, 
   Briefcase,
-  LogOut
+  LogOut,
+  ListTodo
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -19,6 +20,7 @@ export function Sidebar({ className }: SidebarProps) {
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+    { icon: ListTodo, label: "All Tasks", href: "/all-tasks" },
     { icon: CheckSquare, label: "My Tasks", href: "/my-tasks" },
     { icon: Users, label: "Delegation", href: "/delegation" },
     { icon: BarChart3, label: "Reports", href: "/reports" },
