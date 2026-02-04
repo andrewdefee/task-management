@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   LayoutDashboard, 
   CheckSquare, 
@@ -28,16 +27,16 @@ export function Sidebar({ className }: SidebarProps) {
   ];
 
   return (
-    <div className={cn("pb-12 w-64 border-r bg-sidebar/50 backdrop-blur-xl flex flex-col h-screen fixed left-0 top-0 z-20", className)}>
+    <div className={cn("pb-12 border-r bg-sidebar/50 backdrop-blur-xl flex flex-col h-screen overflow-y-auto", className)}>
       <div className="space-y-4 py-4 flex-1">
-        <div className="px-6 py-2">
+        <div className="px-6 py-2 md:block hidden">
           <h2 className="mb-2 px-2 text-lg font-display font-bold tracking-tight text-sidebar-primary-foreground flex items-center gap-2">
             <div className="h-6 w-6 rounded bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">EX</div>
             EXEC.OS
           </h2>
         </div>
 
-        <div className="px-4 mb-4">
+        <div className="px-4 mb-4 mt-2 md:mt-0">
           <Link href="/create-task">
             <Button className="w-full justify-start gap-2 shadow-lg shadow-primary/20" size="lg">
               <Plus className="h-4 w-4" />
