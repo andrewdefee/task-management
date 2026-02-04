@@ -21,6 +21,9 @@ interface DelegationTableProps {
   className?: string;
   limit?: number;
   showMoreHref?: string;
+  hideHeader?: boolean;
+  hideAssigneeFilter?: boolean;
+  showDueSoonFilter?: boolean;
 }
 
 const PriorityBadge = ({ priority }: { priority: TaskPriority }) => {
@@ -53,11 +56,20 @@ const StatusBadge = ({ status }: { status: TaskStatus }) => {
 type SortField = "status" | "assignee" | "priority" | "dueDate";
 type SortDirection = "asc" | "desc";
 
-export function DelegationTable({ tasks, className, limit, showMoreHref }: DelegationTableProps) {
+export function DelegationTable({ 
+  tasks, 
+  className, 
+  limit, 
+  showMoreHref, 
+  hideHeader = false,
+  hideAssigneeFilter = false,
+  showDueSoonFilter = false
+}: DelegationTableProps) {
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
+  const [dueSoonFilter, setDueSoonFilter] = useState<string>("all");
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>("dueDate");
@@ -84,8 +96,13 @@ export function DelegationTable({ tasks, className, limit, showMoreHref }: Deleg
     if (priorityFilter !== "all") {
       result = result.filter(t => t.priority === priorityFilter);
     }
-    if (assigneeFilter !== "all") {
+    if (assigneeFilter !== "all" && !hideAssigneeFilter) {
       result = result.filter(t => t.assignee === assigneeFilter);
+    }
+    if (dueSoonFilter === "soon" && showDueSoonFilter) {
+      const threeDaysFromNow = new Date();
+      threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+      result = result.filter(t => t.dueDate <= threeDaysFromNow && t.dueDate >= new Date());
     }
 
     // Sort
@@ -106,7 +123,7 @@ export function DelegationTable({ tasks, className, limit, showMoreHref }: Deleg
     });
 
     return result;
-  }, [tasks, statusFilter, priorityFilter, assigneeFilter, sortField, sortDirection]);
+  }, [tasks, statusFilter, priorityFilter, assigneeFilter, dueSoonFilter, sortField, sortDirection, hideAssigneeFilter, showDueSoonFilter]);
 
   // Apply limit if provided
   const displayedTasks = limit ? filteredAndSortedTasks.slice(0, limit) : filteredAndSortedTasks;
@@ -114,10 +131,10 @@ export function DelegationTable({ tasks, className, limit, showMoreHref }: Deleg
 
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className={hideHeader ? "pb-0" : ""}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <CardTitle className="text-lg font-medium font-display">Team Delegation & Accountability</CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
+          {!hideHeader && <CardTitle className="text-lg font-medium font-display">Team Delegation & Accountability</CardTitle>}
+          <div className={`flex flex-wrap items-center gap-2 ${hideHeader ? "ml-auto" : ""}`}>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[130px] h-8 text-xs">
                 <SelectValue placeholder="Status" />
@@ -143,17 +160,31 @@ export function DelegationTable({ tasks, className, limit, showMoreHref }: Deleg
               </SelectContent>
             </Select>
 
-            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <SelectValue placeholder="Assignee" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Team</SelectItem>
-                {uniqueAssignees.map(assignee => (
-                  <SelectItem key={assignee} value={assignee}>{assignee}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!hideAssigneeFilter && (
+              <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                <SelectTrigger className="w-[130px] h-8 text-xs">
+                  <SelectValue placeholder="Assignee" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Team</SelectItem>
+                  {uniqueAssignees.map(assignee => (
+                    <SelectItem key={assignee} value={assignee}>{assignee}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {showDueSoonFilter && (
+              <Select value={dueSoonFilter} onValueChange={setDueSoonFilter}>
+                <SelectTrigger className="w-[130px] h-8 text-xs">
+                  <SelectValue placeholder="Due Date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any Date</SelectItem>
+                  <SelectItem value="soon">Due Soon (3 Days)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
       </CardHeader>

@@ -14,7 +14,7 @@ export default function AllTasks() {
           <p className="text-muted-foreground">Comprehensive list of all outstanding tasks across the organization.</p>
         </div>
 
-        <DelegationTable tasks={tasks} className="w-full" />
+        <DelegationTable tasks={tasks} className="w-full" hideHeader={true} />
       </div>
     </Layout>
   );

@@ -8,6 +8,8 @@ import Dashboard from "@/pages/Dashboard";
 import AllTasks from "@/pages/AllTasks";
 import MyTasks from "@/pages/MyTasks";
 import Delegation from "@/pages/Delegation";
+import Settings from "@/pages/Settings";
+import CreateTask from "@/pages/CreateTask";
 
 function Router() {
   return (
@@ -16,6 +18,8 @@ function Router() {
       <Route path="/all-tasks" component={AllTasks} />
       <Route path="/my-tasks" component={MyTasks} />
       <Route path="/delegation" component={Delegation} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/create-task" component={CreateTask} />
       
       {/* Fallbacks */}
       <Route path="/reports" component={Dashboard} />

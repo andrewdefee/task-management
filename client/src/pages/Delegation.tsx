@@ -3,9 +3,16 @@ import { TaskTable } from "@/components/dashboard/TaskTable";
 import { MOCK_TASKS, TaskAssignee } from "@/lib/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { Users, AlertCircle, Clock } from "lucide-react";
 
 export default function Delegation() {
   const delegatedTasks = MOCK_TASKS.filter(t => t.assignee !== "Me" && t.status !== "Completed");
+  const criticalTasks = delegatedTasks.filter(t => t.priority === "Critical");
+  const dueSoon = delegatedTasks.filter(t => {
+    const diff = t.dueDate.getTime() - new Date().getTime();
+    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000; // 3 days
+  });
   
   // Group by assignee
   const groupedTasks: Record<string, typeof delegatedTasks> = {};
@@ -22,6 +29,26 @@ export default function Delegation() {
         <div>
           <h1 className="text-3xl font-display font-bold tracking-tight text-white mb-1">Team Delegation</h1>
           <p className="text-muted-foreground">Oversight of tasks assigned to team members.</p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatCard 
+            title="Total Delegated" 
+            value={delegatedTasks.length} 
+            icon={Users} 
+          />
+          <StatCard 
+            title="Critical Priority" 
+            value={criticalTasks.length} 
+            icon={AlertCircle} 
+            variant="warning"
+          />
+          <StatCard 
+            title="Due Soon" 
+            value={dueSoon.length} 
+            icon={Clock} 
+            variant="info"
+          />
         </div>
 
         <div className="space-y-8">

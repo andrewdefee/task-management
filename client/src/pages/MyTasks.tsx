@@ -40,7 +40,13 @@ export default function MyTasks() {
           />
         </div>
 
-        <DelegationTable tasks={myTasks} className="w-full" />
+        <DelegationTable 
+          tasks={myTasks} 
+          className="w-full" 
+          hideHeader={true} 
+          hideAssigneeFilter={true} 
+          showDueSoonFilter={true}
+        />
       </div>
     </Layout>
   );

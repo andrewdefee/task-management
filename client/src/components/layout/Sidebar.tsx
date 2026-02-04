@@ -9,7 +9,8 @@ import {
   Settings, 
   Briefcase,
   LogOut,
-  ListTodo
+  ListTodo,
+  Plus
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -25,6 +26,7 @@ export function Sidebar({ className }: SidebarProps) {
     { icon: Users, label: "Delegation", href: "/delegation" },
     { icon: BarChart3, label: "Reports", href: "/reports" },
     { icon: Briefcase, label: "Projects", href: "/projects" },
+    { icon: Settings, label: "Settings", href: "/settings" },
   ];
 
   return (
@@ -36,6 +38,16 @@ export function Sidebar({ className }: SidebarProps) {
             EXEC.OS
           </h2>
         </div>
+
+        <div className="px-4 mb-4">
+          <Link href="/create-task">
+            <Button className="w-full justify-start gap-2 shadow-lg shadow-primary/20" size="lg">
+              <Plus className="h-4 w-4" />
+              New Task
+            </Button>
+          </Link>
+        </div>
+
         <div className="px-3 py-2">
           <div className="space-y-1">
             {menuItems.map((item) => (
