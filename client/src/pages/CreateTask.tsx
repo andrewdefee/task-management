@@ -62,6 +62,23 @@ export default function CreateTask() {
                   </Select>
                 </div>
                  <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select defaultValue="todo">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todo">Todo</SelectItem>
+                      <SelectItem value="in-progress">In Progress</SelectItem>
+                      <SelectItem value="review">Review</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
                   <Label>Priority</Label>
                   <Select>
                     <SelectTrigger>
@@ -75,9 +92,6 @@ export default function CreateTask() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
                   <Label>Assignee</Label>
                   <Select>
@@ -91,14 +105,16 @@ export default function CreateTask() {
                     </SelectContent>
                   </Select>
                 </div>
-                 <div className="space-y-2 flex flex-col">
+              </div>
+
+               <div className="space-y-2 flex flex-col">
                   <Label>Due Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !date && "text-muted-foreground"
                         )}
                       >
@@ -119,7 +135,6 @@ export default function CreateTask() {
                     </PopoverContent>
                   </Popover>
                 </div>
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="desc">Description</Label>
