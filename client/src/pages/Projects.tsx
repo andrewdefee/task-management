@@ -11,26 +11,32 @@ function getProjectHealth(tasks: ReturnType<typeof enrichTasks>) {
   if (tasks.length === 0) return { status: "On Track", variant: "outline" as const };
   
   const now = new Date();
+  const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
   const activeTasks = tasks.filter(t => t.status !== "Completed");
   
-  const overdueTasks = activeTasks.filter(t => {
+  const isHighPriority = (priority: string) => priority === "High" || priority === "Critical";
+  
+  const highPriorityAtRisk = activeTasks.filter(t => {
+    if (!isHighPriority(t.priority)) return false;
     if (!t.dueDate) return false;
-    return new Date(t.dueDate) < now;
+    const dueDate = new Date(t.dueDate);
+    const diff = dueDate.getTime() - now.getTime();
+    return diff < threeDaysMs;
   });
   
-  const criticalTasks = activeTasks.filter(t => t.priority === "Critical");
-  
-  const dueSoonTasks = activeTasks.filter(t => {
+  const regularTasksNeedAttention = activeTasks.filter(t => {
+    if (isHighPriority(t.priority)) return false;
     if (!t.dueDate) return false;
-    const diff = new Date(t.dueDate).getTime() - now.getTime();
-    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
+    const dueDate = new Date(t.dueDate);
+    const diff = dueDate.getTime() - now.getTime();
+    return diff > 0 && diff < threeDaysMs;
   });
 
-  if (overdueTasks.length > 0 || criticalTasks.length > 0) {
+  if (highPriorityAtRisk.length > 0) {
     return { status: "At Risk", variant: "destructive" as const };
   }
   
-  if (dueSoonTasks.length > 0) {
+  if (regularTasksNeedAttention.length > 0) {
     return { status: "Needs Attention", variant: "secondary" as const };
   }
   
