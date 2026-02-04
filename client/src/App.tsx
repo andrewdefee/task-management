@@ -10,6 +10,7 @@ import MyTasks from "@/pages/MyTasks";
 import Delegation from "@/pages/Delegation";
 import Settings from "@/pages/Settings";
 import CreateTask from "@/pages/CreateTask";
+import Reports from "@/pages/Reports";
 
 function Router() {
   return (
@@ -20,9 +21,9 @@ function Router() {
       <Route path="/delegation" component={Delegation} />
       <Route path="/settings" component={Settings} />
       <Route path="/create-task" component={CreateTask} />
+      <Route path="/reports" component={Reports} />
       
       {/* Fallbacks */}
-      <Route path="/reports" component={Dashboard} />
       <Route path="/projects" component={Dashboard} />
       
       <Route component={NotFound} />
